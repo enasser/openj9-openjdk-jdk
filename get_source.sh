@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# ===========================================================================
+# (c) Copyright IBM Corp. 2017, 2018 All Rights Reserved
+# ===========================================================================
 #
 # Copyright (c) 2010, 2014, Oracle and/or its affiliates. All rights reserved.
 # DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
@@ -29,7 +32,7 @@
 set -e
 
 usage() {
-	echo "Usage: $0 [-h|--help] [... other j9 options] [-parallel=<true|false>]"
+	echo "Usage: $0 [-h|--help] [... other j9 options] [-parallel=<true|false>] [--openssl-version=<openssl version to download>]"
 	echo "where:"
 	echo "  -h|--help         print this help, then exit"
 	echo " "
@@ -42,11 +45,14 @@ usage() {
 	echo "  -omr-branch       the OpenJ9/omr git branch: openj9"
 	echo "  -omr-sha          a commit SHA for the omr repository"
 	echo "  -parallel         (boolean) if 'true' then the clone j9 repository commands run in parallel, default is false"
+	echo "  --openssl-version Specify the version of OpenSSL source to download"
 	echo ""
 	exit 1
 }
 
 j9options=""
+openssloptions=""
+DOWNLOAD_OPENSSL=false
 
 for i in "$@" ; do
 	case $i in
@@ -56,6 +62,11 @@ for i in "$@" ; do
 
 		-openj9-repo=* | -openj9-branch=* | -openj9-sha=* | -omr-repo=* | -omr-branch=* | -omr-sha=* | -parallel=* )
 			j9options="${j9options} ${i}"
+			;;
+
+		--openssl-version=* )
+			DOWNLOAD_OPENSSL=true
+			openssloptions="${openssloptions} ${i}"
 			;;
 
 		'--' ) # no more options
@@ -74,3 +85,8 @@ done
 
 # Get clones of OpenJ9 absent repositories
 bash closed/get_j9_source.sh ${j9options}
+
+# Download source of OpenSSL if asked
+if $DOWNLOAD_OPENSSL; then
+	bash closed/get_openssl_source.sh ${openssloptions}
+fi
